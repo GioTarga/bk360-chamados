@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#A10101">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chamados BK">
+<title>Chamados BK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#A10101; --red-dark:#6e0000; --gold:#B5640B;
+    --cream:#FFF8E7; --paper:#ffffff; --ink:#2a1a1a; --ink-soft:#6b5c5c; --line:#f0ddc0;
+    --good:#2f7d52; --good-bg:#dff3e6; --bad-bg:#fbe2dc; --warn:#a8740b; --warn-bg:#fdf2dc;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Inter','Helvetica Neue',Arial,sans-serif;
+    --radius-sm:7px; --radius-md:12px; --radius-lg:16px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--cream); color:var(--ink); font-family:var(--font-body);
+    font-size:16px; line-height:1.4; -webkit-text-size-adjust:100%;
+    min-height:100vh; min-height:100dvh;
+  }
+  [hidden]{ display:none !important; }
+
+  /* ===== Telas de login e troca de senha (mesmo cartão do BK360) ===== */
+  .tela{ position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; background:var(--red-dark); padding:16px; overflow-y:auto; }
+  .card{ width:100%; max-width:360px; background:#fff; border-radius:var(--radius-sm); padding:28px 26px 24px; box-shadow:0 12px 40px rgba(0,0,0,0.35); }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .card .brand{ margin-bottom:18px; }
+  .mark{
+    width:26px; height:26px; flex-shrink:0; border-radius:var(--radius-sm);
+    background:var(--gold); color:var(--red-dark);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:600; font-size:14px;
+  }
+  .brand-text{ font-family:var(--font-display); font-weight:600; font-size:20px; letter-spacing:.2px; }
+  .card .brand-text{ color:var(--red-dark); }
+  .card h2{ margin:0 0 4px; font-size:16px; color:var(--red-dark); }
+  .card p.sub{ margin:0 0 6px; font-size:12.5px; color:#6b6b6b; line-height:1.4; }
+
+  label{ display:block; font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:#6b6b6b; margin:12px 0 4px; }
+  input, select, textarea{
+    width:100%; font:inherit; font-size:16px; /* 16px evita o zoom automático no iPhone */
+    color:var(--ink); background:#fffdf9; border:1px solid #d8cfc4;
+    border-radius:var(--radius-sm); padding:12px; min-height:48px;
+    appearance:none; -webkit-appearance:none;
+  }
+  select{
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
+    background-position:calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size:6px 6px,6px 6px; background-repeat:no-repeat; padding-right:36px;
+  }
+  textarea{ min-height:120px; resize:vertical; }
+  input:focus, select:focus, textarea:focus{ outline:2px solid var(--gold); outline-offset:0; }
+  .btn{
+    width:100%; min-height:52px; margin-top:18px; border:none; border-radius:var(--radius-sm);
+    background:var(--red); color:#fff; font:inherit; font-weight:700; font-size:16px; cursor:pointer;
+  }
+  .btn:active{ background:var(--red-dark); }
+  .btn:disabled{ opacity:.6; cursor:wait; }
+  .btn-ghost{ background:transparent; color:var(--red); border:2px solid var(--red); }
+  .btn-ghost:active{ background:var(--bad-bg); }
+  .err{ min-height:18px; margin-top:12px; font-size:13px; color:var(--red); }
+
+  /* ===== App ===== */
+  header{
+    background:var(--red-dark); color:#fff;
+    padding:12px 16px; padding-top:calc(12px + env(safe-area-inset-top));
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    position:sticky; top:0; z-index:5;
+  }
+  header .brand-text{ font-size:18px; }
+  .quem{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .quem-nome{ font-size:12px; opacity:.85; max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sair{ border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; border-radius:var(--radius-sm); font:inherit; font-size:13px; font-weight:600; padding:8px 14px; min-height:40px; cursor:pointer; }
+  .sair:active{ background:rgba(255,255,255,.14); }
+
+  .topo{ background:var(--red); color:#fff; padding:18px 16px 20px; }
+  .eyebrow{ font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#ffd9ad; font-weight:700; }
+  .topo h1{ margin:4px 0 0; font-family:var(--font-display); font-size:26px; font-weight:600; }
+  .topo p{ margin:6px 0 0; font-size:13px; opacity:.9; }
+
+  main{ max-width:560px; margin:0 auto; padding:16px; padding-bottom:calc(32px + env(safe-area-inset-bottom)); }
+  .painel{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-md); padding:4px 16px 18px; }
+  .painel label:first-child{ margin-top:12px; }
+  .dica{ font-size:12px; color:var(--ink-soft); margin:12px 0 0; }
+  .msg{ display:none; border-radius:var(--radius-sm); padding:12px 14px; font-size:14px; font-weight:600; margin-top:14px; }
+  .msg.ok{ display:block; background:var(--good-bg); color:var(--good); }
+  .msg.erro{ display:block; background:var(--bad-bg); color:var(--red-dark); }
+
+  .sub-titulo{ font-family:var(--font-display); font-size:19px; font-weight:600; margin:28px 0 10px; display:flex; justify-content:space-between; align-items:baseline; }
+  .atualizar{ border:none; background:none; color:var(--red); font:inherit; font-size:13px; font-weight:700; padding:6px 0 6px 10px; cursor:pointer; }
+  .item{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:8px; }
+  .item-topo{ display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .item-eq{ font-weight:700; font-size:15px; }
+  .badge{ font-size:11px; font-weight:700; border-radius:999px; padding:3px 10px; white-space:nowrap; }
+  .b-aberto{ background:var(--bad-bg); color:var(--red-dark); }
+  .b-exec{ background:var(--warn-bg); color:var(--warn); }
+  .b-ok{ background:var(--good-bg); color:var(--good); }
+  .item-meta{ font-size:12.5px; color:var(--ink-soft); margin-top:5px; line-height:1.55; }
+  .vazio{ text-align:center; color:var(--ink-soft); font-size:13px; padding:16px; }
+  @media (prefers-reduced-motion:no-preference){ .btn, .sair{ transition:background .15s; } }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="tela" id="telaLogin" hidden>
+  <form class="card" id="formLogin" autocomplete="on">
+    <div class="brand"><span class="mark">B</span><span class="brand-text">BK360 · Chamados</span></div>
+    <label for="loginEmail">E-mail</label>
+    <input type="email" id="loginEmail" name="email" autocomplete="username" inputmode="email" autocapitalize="none" required>
+    <label for="loginSenha">Senha</label>
+    <input type="password" id="loginSenha" name="password" autocomplete="current-password" required>
+    <button type="submit" class="btn" id="loginBtn">Entrar</button>
+    <div class="err" id="loginErr" role="alert"></div>
+  </form>
+</div>
+
+<!-- Troca de senha no primeiro acesso -->
+<div class="tela" id="telaTroca" hidden>
+  <form class="card" id="formTroca">
+    <h2>Defina sua nova senha</h2>
+    <p class="sub">Esta é sua primeira entrada (ou a senha foi redefinida). Escolha uma senha pessoal para continuar.</p>
+    <label for="trocaNova">Nova senha</label>
+    <input type="password" id="trocaNova" autocomplete="new-password" minlength="8" required>
+    <label for="trocaConf">Confirmar senha</label>
+    <input type="password" id="trocaConf" autocomplete="new-password" minlength="8" required>
+    <button type="submit" class="btn" id="trocaBtn">Salvar e entrar</button>
+    <div class="err" id="trocaErr" role="alert"></div>
+  </form>
+</div>
+
+<!-- App -->
+<div id="app" hidden>
+  <header>
+    <div class="brand"><span class="mark">B</span><span class="brand-text">BK360</span></div>
+    <div class="quem">
+      <span class="quem-nome" id="quemNome"></span>
+      <button type="button" class="sair" id="btnSair">Sair</button>
+    </div>
+  </header>
+  <div class="topo">
+    <div class="eyebrow">Bread King · Manutenção</div>
+    <h1>Abrir chamado</h1>
+    <p>Informe o equipamento e o problema; os mecânicos recebem na fila.</p>
+  </div>
+  <main>
+    <form class="painel" id="formChamado" novalidate>
+      <label for="setor">Setor</label>
+      <select id="setor" required><option value="">Carregando…</option></select>
+      <label for="lider">Líder</label>
+      <input id="lider" type="text" maxlength="80" autocomplete="name" required>
+      <label for="equip">Equipamento com problema</label>
+      <input id="equip" type="text" maxlength="120" autocomplete="off" placeholder="Digite o nome do equipamento" required>
+      <label for="desc">O que está acontecendo?</label>
+      <textarea id="desc" maxlength="1000" placeholder="Descreva o problema com suas palavras" required></textarea>
+      <p class="dica">A data e a hora do chamado são registradas automaticamente no momento do envio.</p>
+      <div class="msg" id="msg" role="alert"></div>
+      <button type="submit" class="btn" id="btnEnviar">Enviar chamado</button>
+    </form>
+
+    <div class="sub-titulo"><span>Meus chamados</span><button type="button" class="atualizar" id="btnAtualizar">Atualizar</button></div>
+    <div id="lista"></div>
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG — mesmo projeto Supabase do BK360
+// ─────────────────────────────────────────────
+const SUPABASE_URL = "https://yymdbciabdmkvaydxzrj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_w5FwCArgR8jr0mbN7teYlQ_59my67Tl";
+const NIVEIS_PERMITIDOS = ['lider', 'alpha'];  // Alpha entra para testar; os demais perfis usam o BK360
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+let USER = null;
+let setoresOk = false;
+let timerLista = null;
+
+// ─────────────────────────────────────────────
+// UTILITÁRIOS
+// ─────────────────────────────────────────────
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const pad = n => String(n).padStart(2, '0');
+function fmtDur(ms){
+  if(ms == null || isNaN(ms)) return '—';
+  const min = Math.max(0, Math.round(ms / 60000));
+  if(min < 60) return `${min} min`;
+  const h = Math.floor(min / 60), m = min % 60;
+  if(h < 24) return `${h} h ${pad(m)} min`;
+  return `${Math.floor(h / 24)} d ${h % 24} h`;
+}
+function fmtDataHora(d){ return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function nomeDoUsuario(u){
+  const meta = (u && u.user_metadata) || {};
+  let nome = meta.nome || meta.full_name || meta.name || '';
+  if(!nome && u && u.email) nome = u.email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return nome;
+}
+function mostrarMsg(t, tipo){ const m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (t ? ' ' + tipo : ''); }
+
+// ─────────────────────────────────────────────
+// TELAS / SESSÃO
+// ─────────────────────────────────────────────
+function mostrar(tela){
+  $('telaLogin').hidden = tela !== 'login';
+  $('telaTroca').hidden = tela !== 'troca';
+  $('app').hidden = tela !== 'app';
+}
+
+async function aplicarSessao(session){
+  const u = session && session.user ? session.user : null;
+  USER = u;
+  if(!u){ pararLista(); mostrar('login'); return; }
+  const nivel = (u.app_metadata && u.app_metadata.nivel) || null;
+  if(!NIVEIS_PERMITIDOS.includes(nivel)){
+    $('loginErr').textContent = nivel
+      ? 'Este acesso é exclusivo para líderes. Use o BK360 com o seu perfil.'
+      : 'Seu usuário ainda não tem um perfil de acesso. Fale com o administrador.';
+    await sb.auth.signOut();
+    return;
+  }
+  if(u.user_metadata && u.user_metadata.trocar_senha === true){ mostrar('troca'); return; }
+  mostrar('app');
+  $('quemNome').textContent = nomeDoUsuario(u);
+  if(!$('lider').value) $('lider').value = nomeDoUsuario(u);
+  carregarSetores();
+  carregarMeus();
+  iniciarLista();
+}
+
+async function carregarSetores(){
+  if(setoresOk) return;
+  const { data, error } = await sb.from('setores').select('nome').order('nome');
+  if(error || !data){ mostrarMsg('Não consegui carregar os setores. Verifique a internet e recarregue.', 'erro'); return; }
+  setoresOk = true;
+  const ultimo = lerLocal('setor');
+  $('setor').innerHTML = '<option value="">Selecione o setor…</option>' +
+    data.map(s => `<option value="${esc(s.nome)}">${esc(s.nome)}</option>`).join('');
+  if(ultimo && data.some(s => s.nome === ultimo)) $('setor').value = ultimo;
+}
+
+// Lembra só o último setor escolhido neste aparelho (conveniência; funciona sem isso)
+function lerLocal(k){ try{ return localStorage.getItem('bkch_' + k) || ''; }catch(e){ return ''; } }
+function gravarLocal(k, v){ try{ localStorage.setItem('bkch_' + k, v); }catch(e){ /* sem armazenamento: segue normal */ } }
+
+// ─────────────────────────────────────────────
+// ENVIO DO CHAMADO
+// Data e hora: o banco grava no instante do envio (horário de Brasília).
+// ─────────────────────────────────────────────
+async function enviarChamado(ev){
+  ev.preventDefault(); mostrarMsg('');
+  const setor = $('setor').value;
+  const lider = $('lider').value.trim();
+  const equipamento = $('equip').value.trim();
+  const descricao = $('desc').value.trim();
+  if(!setor) return mostrarMsg('Escolha o setor.', 'erro');
+  if(!lider) return mostrarMsg('Informe o nome do líder.', 'erro');
+  if(!equipamento) return mostrarMsg('Informe o equipamento com problema.', 'erro');
+  if(descricao.length < 3) return mostrarMsg('Descreva o problema.', 'erro');
+  const btn = $('btnEnviar'); btn.disabled = true; btn.textContent = 'Enviando…';
+  const { error } = await sb.from('chamados_manutencao').insert({ setor, lider, equipamento, descricao });
+  btn.disabled = false; btn.textContent = 'Enviar chamado';
+  if(error){ mostrarMsg('Não foi possível enviar. Tente de novo em instantes.', 'erro'); return; }
+  gravarLocal('setor', setor);
+  $('desc').value = ''; $('equip').value = '';
+  mostrarMsg('Chamado enviado! Os mecânicos já podem ver na fila.', 'ok');
+  carregarMeus();
+}
+
+// ─────────────────────────────────────────────
+// MEUS CHAMADOS (últimos 14 dias)
+// ─────────────────────────────────────────────
+async function carregarMeus(){
+  const el = $('lista');
+  const corte = new Date(Date.now() - 14 * 86400000).toISOString();
+  const { data, error } = await sb.from('chamados_manutencao').select('*')
+    .gte('created_at', corte).order('created_at', { ascending:false }).limit(40);
+  if(error){ el.innerHTML = '<div class="vazio">Não foi possível carregar seus chamados.</div>'; return; }
+  const uid = USER ? USER.id : null;
+  const meus = (data || []).filter(r => r.criado_por === uid);
+  if(!meus.length){ el.innerHTML = '<div class="vazio">Você ainda não abriu chamados nos últimos 14 dias.</div>'; return; }
+  el.innerHTML = meus.map(r => {
+    const st = r.status === 'concluido' ? ['b-ok', 'Concluído']
+             : r.status === 'em_atendimento' ? ['b-exec', 'Em atendimento'] : ['b-aberto', 'Aguardando'];
+    const aberto = fmtDataHora(new Date(r.created_at));
+    let linha2;
+    if(r.status === 'aberto'){
+      linha2 = `Aguardando há ${fmtDur(Date.now() - new Date(r.created_at))}`;
+    }else if(r.status === 'em_atendimento'){
+      linha2 = `${esc(r.mecanico_nome || 'Mecânico')} está atendendo`;
+    }else{
+      const exec = r.inicio_manutencao
+        ? (r.fim_manutencao ? new Date(r.fim_manutencao) : new Date()) - new Date(r.inicio_manutencao) : null;
+      linha2 = `Atendido por ${esc(r.mecanico_nome || '—')} · execução ${fmtDur(exec)}`;
+    }
+    return `<div class="item"><div class="item-topo"><span class="item-eq">${esc(r.equipamento)}</span><span class="badge ${st[0]}">${st[1]}</span></div>
+      <div class="item-meta">${esc(r.setor)} · aberto em ${aberto}<br>${linha2}</div></div>`;
+  }).join('');
+}
+// Atualiza sozinho a cada minuto enquanto a tela está aberta
+function iniciarLista(){ pararLista(); timerLista = setInterval(() => { if(!document.hidden) carregarMeus(); }, 60000); }
+function pararLista(){ if(timerLista){ clearInterval(timerLista); timerLista = null; } }
+
+// ─────────────────────────────────────────────
+// INICIALIZAÇÃO
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  $('formLogin').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const btn = $('loginBtn');
+    $('loginErr').textContent = '';
+    btn.disabled = true; btn.textContent = 'Entrando…';
+    const { error } = await sb.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginSenha').value });
+    btn.disabled = false; btn.textContent = 'Entrar';
+    if(error){ $('loginErr').textContent = 'E-mail ou senha incorretos.'; return; }
+    $('loginSenha').value = '';
+  });
+
+  $('formTroca').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const nova = $('trocaNova').value, conf = $('trocaConf').value;
+    $('trocaErr').textContent = '';
+    if(nova.length < 8){ $('trocaErr').textContent = 'A senha precisa ter ao menos 8 caracteres.'; return; }
+    if(nova !== conf){ $('trocaErr').textContent = 'As senhas não conferem.'; return; }
+    const { data, error } = await sb.auth.updateUser({ password: nova, data: { trocar_senha: false } });
+    if(error){ $('trocaErr').textContent = 'Não foi possível salvar a senha. Tente uma senha diferente.'; return; }
+    $('trocaNova').value = ''; $('trocaConf').value = '';
+    aplicarSessao({ user: data.user });
+  });
+
+  $('btnSair').addEventListener('click', () => sb.auth.signOut());
+  $('formChamado').addEventListener('submit', enviarChamado);
+  $('btnAtualizar').addEventListener('click', carregarMeus);
+
+  sb.auth.onAuthStateChange((evento, session) => {
+    // setTimeout evita chamar o Supabase de dentro do próprio callback de autenticação
+    setTimeout(() => aplicarSessao(session), 0);
+  });
+  const { data } = await sb.auth.getSession();
+  aplicarSessao(data && data.session);
+});
+</script>
+</body>
+</html>
