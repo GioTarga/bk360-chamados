@@ -7,6 +7,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Chamados BK">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<meta name="color-scheme" content="light">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Chamados BK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,6 +29,9 @@
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; }
+  html{ -webkit-tap-highlight-color:transparent; }
+  button, select, label, a{ touch-action:manipulation; }
+  button{ -webkit-user-select:none; user-select:none; }
   body{
     background:var(--cream); color:var(--ink); font-family:var(--font-body);
     font-size:16px; line-height:1.4; -webkit-text-size-adjust:100%;
@@ -31,7 +40,7 @@
   [hidden]{ display:none !important; }
 
   /* ===== Telas de login e troca de senha (mesmo cartão do BK360) ===== */
-  .tela{ position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; background:var(--red-dark); padding:16px; overflow-y:auto; }
+  .tela{ position:fixed; inset:0; z-index:10; padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important; display:flex; align-items:center; justify-content:center; background:var(--red-dark); padding:16px; overflow-y:auto; }
   .card{ width:100%; max-width:360px; background:#fff; border-radius:var(--radius-sm); padding:28px 26px 24px; box-shadow:0 12px 40px rgba(0,0,0,0.35); }
   .brand{ display:flex; align-items:center; gap:10px; }
   .card .brand{ margin-bottom:18px; }
@@ -57,8 +66,11 @@
     background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
     background-position:calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size:6px 6px,6px 6px; background-repeat:no-repeat; padding-right:36px;
   }
-  textarea{ min-height:120px; resize:vertical; }
+  textarea{ min-height:120px; max-height:50vh; resize:none; overflow-y:auto; }
   input:focus, select:focus, textarea:focus{ outline:2px solid var(--gold); outline-offset:0; }
+  .campo-senha{ position:relative; }
+  .campo-senha input{ padding-right:84px; }
+  .ver-senha{ position:absolute; right:4px; top:0; height:48px; min-width:76px; border:none; background:none; color:var(--red); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
   .btn{
     width:100%; min-height:52px; margin-top:18px; border:none; border-radius:var(--radius-sm);
     background:var(--red); color:#fff; font:inherit; font-weight:700; font-size:16px; cursor:pointer;
@@ -73,21 +85,23 @@
   header{
     background:var(--red-dark); color:#fff;
     padding:12px 16px; padding-top:calc(12px + env(safe-area-inset-top));
+    padding-left:calc(16px + env(safe-area-inset-left)); padding-right:calc(16px + env(safe-area-inset-right));
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     position:sticky; top:0; z-index:5;
   }
   header .brand-text{ font-size:18px; }
   .quem{ display:flex; align-items:center; gap:10px; min-width:0; }
   .quem-nome{ font-size:12px; opacity:.85; max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .sair{ border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; border-radius:var(--radius-sm); font:inherit; font-size:13px; font-weight:600; padding:8px 14px; min-height:40px; cursor:pointer; }
+  .sair{ border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; border-radius:var(--radius-sm); font:inherit; font-size:14px; font-weight:600; padding:8px 16px; min-height:44px; cursor:pointer; }
   .sair:active{ background:rgba(255,255,255,.14); }
 
-  .topo{ background:var(--red); color:#fff; padding:18px 16px 20px; }
+  .topo{ background:var(--red); color:#fff; padding:18px 16px 20px; padding-left:calc(16px + env(safe-area-inset-left)); padding-right:calc(16px + env(safe-area-inset-right)); }
   .eyebrow{ font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#ffd9ad; font-weight:700; }
   .topo h1{ margin:4px 0 0; font-family:var(--font-display); font-size:26px; font-weight:600; }
+  @media (max-height:520px){ .topo p{ display:none; } .topo{ padding-bottom:12px; } }
   .topo p{ margin:6px 0 0; font-size:13px; opacity:.9; }
 
-  main{ max-width:560px; margin:0 auto; padding:16px; padding-bottom:calc(32px + env(safe-area-inset-bottom)); }
+  main{ max-width:560px; margin:0 auto; padding:16px; padding-left:calc(16px + env(safe-area-inset-left)); padding-right:calc(16px + env(safe-area-inset-right)); padding-bottom:calc(40px + env(safe-area-inset-bottom)); }
   .painel{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-md); padding:4px 16px 18px; }
   .painel label:first-child{ margin-top:12px; }
   .dica{ font-size:12px; color:var(--ink-soft); margin:12px 0 0; }
@@ -96,7 +110,7 @@
   .msg.erro{ display:block; background:var(--bad-bg); color:var(--red-dark); }
 
   .sub-titulo{ font-family:var(--font-display); font-size:19px; font-weight:600; margin:28px 0 10px; display:flex; justify-content:space-between; align-items:baseline; }
-  .atualizar{ border:none; background:none; color:var(--red); font:inherit; font-size:13px; font-weight:700; padding:6px 0 6px 10px; cursor:pointer; }
+  .atualizar{ border:none; background:none; color:var(--red); font:inherit; font-size:14px; font-weight:700; padding:0 0 0 16px; min-height:44px; margin:-14px 0; cursor:pointer; }
   .item{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:8px; }
   .item-topo{ display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
   .item-eq{ font-weight:700; font-size:15px; }
@@ -106,6 +120,9 @@
   .b-ok{ background:var(--good-bg); color:var(--good); }
   .item-meta{ font-size:12.5px; color:var(--ink-soft); margin-top:5px; line-height:1.55; }
   .vazio{ text-align:center; color:var(--ink-soft); font-size:13px; padding:16px; }
+  .offline{ background:var(--warn-bg); color:var(--warn); font-size:13px; font-weight:700; text-align:center; padding:9px 12px; position:sticky; top:0; z-index:6; }
+  .btn-instalar{ width:100%; min-height:48px; margin:0 0 14px; border:1.5px dashed var(--gold); border-radius:var(--radius-md); background:var(--warn-bg); color:var(--ink); font:inherit; font-size:14px; font-weight:600; padding:10px 14px; cursor:pointer; text-align:left; }
+  .btn-instalar b{ color:var(--red); }
   @media (prefers-reduced-motion:no-preference){ .btn, .sair{ transition:background .15s; } }
 </style>
 </head>
@@ -116,9 +133,9 @@
   <form class="card" id="formLogin" autocomplete="on">
     <div class="brand"><span class="mark">B</span><span class="brand-text">BK360 · Chamados</span></div>
     <label for="loginEmail">E-mail</label>
-    <input type="email" id="loginEmail" name="email" autocomplete="username" inputmode="email" autocapitalize="none" required>
+    <input type="email" id="loginEmail" name="email" autocomplete="username" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" required>
     <label for="loginSenha">Senha</label>
-    <input type="password" id="loginSenha" name="password" autocomplete="current-password" required>
+    <div class="campo-senha"><input type="password" id="loginSenha" name="password" autocomplete="current-password" enterkeyhint="go" required><button type="button" class="ver-senha" data-alvo="loginSenha" aria-label="Mostrar senha">Mostrar</button></div>
     <button type="submit" class="btn" id="loginBtn">Entrar</button>
     <div class="err" id="loginErr" role="alert"></div>
   </form>
@@ -130,9 +147,9 @@
     <h2>Defina sua nova senha</h2>
     <p class="sub">Esta é sua primeira entrada (ou a senha foi redefinida). Escolha uma senha pessoal para continuar.</p>
     <label for="trocaNova">Nova senha</label>
-    <input type="password" id="trocaNova" autocomplete="new-password" minlength="8" required>
+    <div class="campo-senha"><input type="password" id="trocaNova" autocomplete="new-password" minlength="8" enterkeyhint="next" required><button type="button" class="ver-senha" data-alvo="trocaNova" aria-label="Mostrar senha">Mostrar</button></div>
     <label for="trocaConf">Confirmar senha</label>
-    <input type="password" id="trocaConf" autocomplete="new-password" minlength="8" required>
+    <div class="campo-senha"><input type="password" id="trocaConf" autocomplete="new-password" minlength="8" enterkeyhint="go" required><button type="button" class="ver-senha" data-alvo="trocaConf" aria-label="Mostrar senha">Mostrar</button></div>
     <button type="submit" class="btn" id="trocaBtn">Salvar e entrar</button>
     <div class="err" id="trocaErr" role="alert"></div>
   </form>
@@ -140,6 +157,7 @@
 
 <!-- App -->
 <div id="app" hidden>
+  <div class="offline" id="offline" role="status" hidden>Sem internet. Seu texto fica guardado; envie quando o sinal voltar.</div>
   <header>
     <div class="brand"><span class="mark">B</span><span class="brand-text">BK360</span></div>
     <div class="quem">
@@ -153,15 +171,17 @@
     <p>Informe o equipamento e o problema; os mecânicos recebem na fila.</p>
   </div>
   <main>
+    <button type="button" class="btn-instalar" id="btnInstalar" hidden></button>
     <form class="painel" id="formChamado" novalidate>
       <label for="setor">Setor</label>
       <select id="setor" required><option value="">Carregando…</option></select>
       <label for="lider">Líder</label>
-      <input id="lider" type="text" maxlength="80" autocomplete="name" required>
+      <input id="lider" type="text" maxlength="80" autocomplete="name" autocapitalize="words" enterkeyhint="next" required>
       <label for="equip">Equipamento com problema</label>
-      <input id="equip" type="text" maxlength="120" autocomplete="off" placeholder="Digite o nome do equipamento" required>
+      <input id="equip" type="text" maxlength="120" autocomplete="off" autocapitalize="sentences" enterkeyhint="next" list="equipRecentes" placeholder="Digite o nome do equipamento" required>
+      <datalist id="equipRecentes"></datalist>
       <label for="desc">O que está acontecendo?</label>
-      <textarea id="desc" maxlength="1000" placeholder="Descreva o problema com suas palavras" required></textarea>
+      <textarea id="desc" maxlength="1000" autocapitalize="sentences" enterkeyhint="enter" placeholder="Descreva o problema com suas palavras" required></textarea>
       <p class="dica">A data e a hora do chamado são registradas automaticamente no momento do envio.</p>
       <div class="msg" id="msg" role="alert"></div>
       <button type="submit" class="btn" id="btnEnviar">Enviar chamado</button>
@@ -185,6 +205,7 @@ const $ = id => document.getElementById(id);
 let USER = null;
 let setoresOk = false;
 let timerLista = null;
+let promptInstalar = null;
 
 // ─────────────────────────────────────────────
 // UTILITÁRIOS
@@ -233,6 +254,7 @@ async function aplicarSessao(session){
   mostrar('app');
   $('quemNome').textContent = nomeDoUsuario(u);
   if(!$('lider').value) $('lider').value = nomeDoUsuario(u);
+  restaurarRascunho();
   carregarSetores();
   carregarMeus();
   iniciarLista();
@@ -249,9 +271,23 @@ async function carregarSetores(){
   if(ultimo && data.some(s => s.nome === ultimo)) $('setor').value = ultimo;
 }
 
-// Lembra só o último setor escolhido neste aparelho (conveniência; funciona sem isso)
+// Lembra no aparelho: último setor, equipamentos recentes e rascunho do chamado (conveniência; funciona sem isso)
 function lerLocal(k){ try{ return localStorage.getItem('bkch_' + k) || ''; }catch(e){ return ''; } }
 function gravarLocal(k, v){ try{ localStorage.setItem('bkch_' + k, v); }catch(e){ /* sem armazenamento: segue normal */ } }
+function lerRecentes(){ try{ return JSON.parse(lerLocal('equips') || '[]'); }catch(e){ return []; } }
+function lembrarEquip(nome){
+  const lista = [nome, ...lerRecentes().filter(x => x.toLowerCase() !== nome.toLowerCase())].slice(0, 12);
+  gravarLocal('equips', JSON.stringify(lista));
+  mostrarRecentes();
+}
+function mostrarRecentes(){ $('equipRecentes').innerHTML = lerRecentes().map(x => `<option value="${esc(x)}"></option>`).join(''); }
+// Rascunho: se o app fechar ou faltar sinal, o texto digitado não se perde
+function salvarRascunho(){ gravarLocal('rascunho', JSON.stringify({ equip:$('equip').value, desc:$('desc').value })); }
+function restaurarRascunho(){
+  try{ const r = JSON.parse(lerLocal('rascunho') || 'null'); if(r){ if(!$('equip').value) $('equip').value = r.equip || ''; if(!$('desc').value) $('desc').value = r.desc || ''; } }catch(e){ /* rascunho inválido: ignora */ }
+  ajustarAltura();
+}
+function ajustarAltura(){ const t = $('desc'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, window.innerHeight * 0.5) + 'px'; }
 
 // ─────────────────────────────────────────────
 // ENVIO DO CHAMADO
@@ -270,10 +306,15 @@ async function enviarChamado(ev){
   const btn = $('btnEnviar'); btn.disabled = true; btn.textContent = 'Enviando…';
   const { error } = await sb.from('chamados_manutencao').insert({ setor, lider, equipamento, descricao });
   btn.disabled = false; btn.textContent = 'Enviar chamado';
-  if(error){ mostrarMsg('Não foi possível enviar. Tente de novo em instantes.', 'erro'); return; }
-  gravarLocal('setor', setor);
-  $('desc').value = ''; $('equip').value = '';
+  if(error){
+    mostrarMsg(navigator.onLine ? 'Não foi possível enviar. Tente de novo em instantes.' : 'Sem internet. Seu texto está guardado; envie quando o sinal voltar.', 'erro');
+    return;
+  }
+  gravarLocal('setor', setor); lembrarEquip(equipamento);
+  $('desc').value = ''; $('equip').value = ''; ajustarAltura(); salvarRascunho();
   mostrarMsg('Chamado enviado! Os mecânicos já podem ver na fila.', 'ok');
+  if(navigator.vibrate) navigator.vibrate(60);
+  $('msg').scrollIntoView({ block:'center', behavior:'smooth' });
   carregarMeus();
 }
 
@@ -307,6 +348,8 @@ async function carregarMeus(){
       <div class="item-meta">${esc(r.setor)} · aberto em ${aberto}<br>${linha2}</div></div>`;
   }).join('');
 }
+// Ao voltar para o app (trocar de aplicativo e retornar), atualiza a lista na hora
+document.addEventListener('visibilitychange', () => { if(!document.hidden && USER && !$('app').hidden) carregarMeus(); });
 // Atualiza sozinho a cada minuto enquanto a tela está aberta
 function iniciarLista(){ pararLista(); timerLista = setInterval(() => { if(!document.hidden) carregarMeus(); }, 60000); }
 function pararLista(){ if(timerLista){ clearInterval(timerLista); timerLista = null; } }
@@ -339,6 +382,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   $('btnSair').addEventListener('click', () => sb.auth.signOut());
+  document.querySelectorAll('.ver-senha').forEach(b => b.addEventListener('click', () => {
+    const inp = $(b.dataset.alvo), ver = inp.type === 'password';
+    inp.type = ver ? 'text' : 'password'; b.textContent = ver ? 'Ocultar' : 'Mostrar';
+  }));
+  mostrarRecentes();
+  $('desc').addEventListener('input', () => { ajustarAltura(); salvarRascunho(); });
+  $('equip').addEventListener('input', salvarRascunho);
+  // Quando o teclado abre, leva o campo focado para a área visível
+  document.querySelectorAll('#formChamado input, #formChamado textarea, #formChamado select').forEach(el =>
+    el.addEventListener('focus', () => setTimeout(() => el.scrollIntoView({ block:'center', behavior:'smooth' }), 300)));
+  // Aviso de falta de sinal
+  const atualizarRede = () => { $('offline').hidden = navigator.onLine; };
+  window.addEventListener('online', () => { atualizarRede(); carregarMeus(); carregarSetores(); });
+  window.addEventListener('offline', atualizarRede);
+  atualizarRede();
+  // Instalar na tela inicial: Android mostra o botão; iPhone recebe a instrução
+  const jaInstalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  window.addEventListener('beforeinstallprompt', ev => {
+    ev.preventDefault(); promptInstalar = ev;
+    if(!jaInstalado){ $('btnInstalar').innerHTML = '<b>Instalar no celular</b> — abre como aplicativo, sem digitar o endereço'; $('btnInstalar').hidden = false; }
+  });
+  if(ios && !jaInstalado){
+    $('btnInstalar').innerHTML = '<b>Instalar no iPhone:</b> toque em Compartilhar e depois em “Adicionar à Tela de Início”'; $('btnInstalar').hidden = false;
+  }
+  $('btnInstalar').addEventListener('click', async () => {
+    if(!promptInstalar){ $('btnInstalar').hidden = true; return; }
+    promptInstalar.prompt(); await promptInstalar.userChoice; promptInstalar = null; $('btnInstalar').hidden = true;
+  });
+  if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { /* sem service worker: o site funciona igual */ });
   $('formChamado').addEventListener('submit', enviarChamado);
   $('btnAtualizar').addEventListener('click', carregarMeus);
 
